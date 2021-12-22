@@ -18,24 +18,32 @@ async function main () {
     const githubToken = core.getInput('GITHUB_TOKEN')
     const shortcutToken = core.getInput('SHORTCUT_TOKEN')
     const workflowStateName = core.getInput('workflowStateName')
+    const prNumbers = core.getMultilineInput('prNumbers')
     const client = new github.getOctokit(githubToken)
     const shortcut = new ShortcutClient(shortcutToken);
 
-    const issue = await client.rest.pulls.get({
-      ...github.context.repo,
-      pull_number: github.context.payload.pull_request.number
-    });
+    if (prNumbers.length === 0) {
+      prNumbers.push(github.context.payload.pull_request.number)
+    }
 
-    const comments = await client.rest.issues.listComments({
-      ...github.context.repo,
-      issue_number: github.context.payload.pull_request.number
-    });
-    let stories = new Set([
-      ...matchStories(issue.data.title),
-      ...matchStories(issue.data.body),
-      ...matchStories(issue.data.head.ref),
-      ...comments.data.flatMap(c => matchStories(c.body))
-    ]);
+    let stories = new Set()
+
+    prNumbers.map(async x => {
+      const issue = await client.rest.pulls.get({
+        ...github.context.repo,
+        pull_number: x
+      });
+
+      const comments = await client.rest.issues.listComments({
+        ...github.context.repo,
+        issue_number: x
+      });
+
+      stories.add(...matchStories(issue.data.title))
+      stories.add(...matchStories(issue.data.body))
+      stories.add(...matchStories(issue.data.title))
+      stories.add(...comments.data.flatMap(c => matchStories(c.body)))
+    })
 
     console.log(stories);
 

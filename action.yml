@@ -10,6 +10,9 @@ inputs:
   workflowStateName:
     required: true
     description: "Desired workflow state"
+  prNumbers:
+    required: false
+    description: "An optional newline seperated list of pr numbers to be moved. By default the context will be used."
     default: ""
 
 runs:
