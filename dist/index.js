@@ -736,11 +736,18 @@ async function main () {
     const shortcutToken = core.getInput('SHORTCUT_TOKEN')
     const workflowStateName = core.getInput('workflowStateName')
     const prNumbers = core.getMultilineInput('prNumbers')
+    const stateWhitelist = core.getMultilineInput('stateWhitelist')
+    const whitelistLower = stateWhitelist.map(x => x.toLowerCase())
     const client = new github.getOctokit(githubToken)
     const shortcut = new ShortcutClient(shortcutToken);
 
     if (prNumbers.length === 0) {
-      prNumbers.push(github.context.payload.pull_request.number)
+      if (github.context.payload && github.context.payload.pull_request) {
+        prNumbers.push(github.context.payload.pull_request.number)
+      } else {
+        core.notice('No PR numbers passed or on context')
+        return;
+      }
     }
 
     let stories = new Set()
@@ -774,10 +781,14 @@ async function main () {
         const currentState = workflowResponse.data.states.find(x =>
             x.id === storyResponse.data.workflow_state_id);
 
-        // Skip stories in Ready for Review
-        if (currentState.name.toLowerCase() === 'ready for review') {
+        // Skip stories not in stateWhitelist or already in desired state
+        if (currentState.name.toLowerCase() === workflowStateName.toLowerCase()) {
           return;
         }
+        if (!whitelistLower.find(x => x === currentState.name.toLowerCase())) {
+          return ;
+        }
+
 
         const workflowState = workflowResponse.data.states.find(x =>
             x.name.toLowerCase() === workflowStateName.toLowerCase());
