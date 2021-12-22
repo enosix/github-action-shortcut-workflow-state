@@ -19,10 +19,10 @@ jobs:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
           SHORTCUT_TOKEN: ${{secrets.CLUBHOUSE_TOKEN}}
           workflowStateName: "Ready for Review"
-          prNumbers: steps.merge.outputs.mergedPrNumbers
+          prNumbers: ${{ steps.merge.outputs.mergedPrNumbers }}
       - uses: enosix/github-action-shortcut-workflow-state@v1.0.0
         with:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
           SHORTCUT_TOKEN: ${{secrets.CLUBHOUSE_TOKEN}}
           workflowStateName: "Awaiting changes"
-          prNumbers: steps.merge.outputs.conflictedPrNumbers
+          prNumbers: ${{ steps.merge.outputs.conflictedPrNumbers }}
