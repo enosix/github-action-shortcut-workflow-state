@@ -23,7 +23,12 @@ async function main () {
     const shortcut = new ShortcutClient(shortcutToken);
 
     if (prNumbers.length === 0) {
-      prNumbers.push(github.context.payload.pull_request.number)
+      if (github.context.payload && github.context.payload.pull_request) {
+        prNumbers.push(github.context.payload.pull_request.number)
+      } else {
+        core.notice('No PR numbers passed or on context')
+        return;
+      }
     }
 
     let stories = new Set()
