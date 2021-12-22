@@ -14,6 +14,9 @@ inputs:
     required: false
     description: "An optional newline seperated list of pr numbers to be moved. By default the context will be used."
     default: ""
+  stateWhitelist:
+    required: false
+    description: "A newline seperated list of states a story should have before we try to move it"
 
 runs:
   using: node12
