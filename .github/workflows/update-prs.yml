@@ -14,15 +14,15 @@ jobs:
         uses: enosix/github-action-merge@v1.0.1
         with:
           token: ${{ secrets.ACCESS_TOKEN_GITHUB }}
-      - uses: enosix-github-action-shortcut-workflow-state@v1.0.0
+      - uses: enosix/github-action-shortcut-workflow-state@v1.0.0
         with:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
           SHORTCUT_TOKEN: ${{secrets.CLUBHOUSE_TOKEN}}
           workflowStateName: "Ready for Review"
-          prNumbers: steps.merge.outputs.mergedPrNumbers
-      - uses: enosix-github-action-shortcut-workflow-state@v1.0.0
+          prNumbers: ${{ steps.merge.outputs.mergedPrNumbers }}
+      - uses: enosix/github-action-shortcut-workflow-state@v1.0.0
         with:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
           SHORTCUT_TOKEN: ${{secrets.CLUBHOUSE_TOKEN}}
           workflowStateName: "Awaiting changes"
-          prNumbers: steps.merge.outputs.conflictedPrNumbers
+          prNumbers: ${{ steps.merge.outputs.conflictedPrNumbers }}
