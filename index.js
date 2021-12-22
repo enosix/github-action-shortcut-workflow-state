@@ -28,7 +28,7 @@ async function main () {
 
     let stories = new Set()
 
-    prNumbers.map(async x => {
+    await Promise.all(prNumbers.map(async x => {
       const issue = await client.rest.pulls.get({
         ...github.context.repo,
         pull_number: x
@@ -41,34 +41,36 @@ async function main () {
 
       stories.add(...matchStories(issue.data.title))
       stories.add(...matchStories(issue.data.body))
-      stories.add(...matchStories(issue.data.title))
+      stories.add(...matchStories(issue.data.head.ref))
       stories.add(...comments.data.flatMap(c => matchStories(c.body)))
-    })
+    }))
 
     console.log(stories);
 
     if (workflowStateName) {
       Promise.all(Array.from(stories).map(async storyId => {
-            const storyResponse = await shortcut.getStory(storyId);
-            const workflowResponse = await shortcut.getWorkflow(storyResponse.data.workflow_id);
-            const currentState = workflowResponse.data.states.find(x =>
-                x.workflow_state_id === storyResponse.data.workflow_state_id);
+        if (!storyId)
+          return;
 
-            // Skip stories in Ready for Review
-            if (currentState.name.toLowerCase() === 'ready for review') {
-              return;
-            }
+        const storyResponse = await shortcut.getStory(storyId);
+        const workflowResponse = await shortcut.getWorkflow(storyResponse.data.workflow_id);
+        const currentState = workflowResponse.data.states.find(x =>
+            x.id === storyResponse.data.workflow_state_id);
 
-            const workflowState = workflowResponse.data.states.find(x =>
-                x.name.toLowerCase() === workflowStateName.toLowerCase());
+        // Skip stories in Ready for Review
+        if (currentState.name.toLowerCase() === 'ready for review') {
+          return;
+        }
 
-            if (!workflowState) {
-              throw 'Workflow State "' + workflowStateName + '" not found';
-            }
+        const workflowState = workflowResponse.data.states.find(x =>
+            x.name.toLowerCase() === workflowStateName.toLowerCase());
 
-            return shortcut.updateStory(storyId, { workflow_state_id: workflowState.id});
-          }
-      ));
+        if (!workflowState) {
+          throw 'Workflow State "' + workflowStateName + '" not found';
+        }
+
+        return shortcut.updateStory(storyId, { workflow_state_id: workflowState.id});
+      }));
     }
 
   } catch (e) {
