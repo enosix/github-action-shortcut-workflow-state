@@ -772,7 +772,7 @@ async function main () {
         const storyResponse = await shortcut.getStory(storyId);
         const workflowResponse = await shortcut.getWorkflow(storyResponse.data.workflow_id);
         const currentState = workflowResponse.data.states.find(x =>
-            x.workflow_state_id === storyResponse.data.workflow_state_id);
+            x.id === storyResponse.data.workflow_state_id);
 
         // Skip stories in Ready for Review
         if (currentState.name.toLowerCase() === 'ready for review') {
