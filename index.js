@@ -51,6 +51,14 @@ async function main () {
       Promise.all(Array.from(stories).map(async storyId => {
             const storyResponse = await shortcut.getStory(storyId);
             const workflowResponse = await shortcut.getWorkflow(storyResponse.data.workflow_id);
+            const currentState = workflowResponse.data.states.find(x =>
+                x.workflow_state_id === storyResponse.data.workflow_state_id);
+
+            // Skip stories in Ready for Review
+            if (currentState.name.toLowerCase() === 'ready for review') {
+              return;
+            }
+
             const workflowState = workflowResponse.data.states.find(x =>
                 x.name.toLowerCase() === workflowStateName.toLowerCase());
 
